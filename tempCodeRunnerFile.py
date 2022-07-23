@@ -1,0 +1,1 @@
+traversedState_.append(goal)
