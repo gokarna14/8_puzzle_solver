@@ -3,6 +3,7 @@ import copy
 import pygame
 
 
+
 class Solver:
     def __init__(self, initialState, finalState):
         self.initial = initialState
@@ -145,15 +146,4 @@ goal = [
     [7, 8, 0]
 ]
 
-S1 = Solver(initial, goal)
-
-
-background_colour = (255,255,255)
-(width, height) = (300, 200)
-screen = pygame. display. set_mode((width, height))
-pygame. display. set_caption('Tutorial 1')
-screen. fill(background_colour)
-
-
-pygame. display. flip()
-running = True
+# S1 = Solver(initial, goal)
