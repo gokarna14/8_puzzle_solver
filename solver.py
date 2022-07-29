@@ -2,16 +2,82 @@ from cmath import inf
 import copy
 import pygame
 
+goal = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 0]
+]
 
+# CHANGE INITIAL STATE FROM HERE
+
+initial = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8]
+]
+
+
+backgroundColor = (234, 212, 252)
+
+screen = pygame.display.set_mode((600, 600)) # w, h
+
+pygame.display.set_caption('8 Puzzle Solver')
+screen.fill(backgroundColor)
+
+pygame.init()
+font = pygame.font.SysFont('Times', 15)
+running = True
+
+
+def drawActual(screen, pos):
+    global font
+    w = 60
+    h= 60
+    count = 1
+    for column in range(3):
+        for row in range(3):
+            x = pos[0]+w*row
+            y = pos[1]+h*column
+            r = pygame.Rect(x, y, w, h)
+            pygame.draw.rect(screen, ((count*15)%255, 0, 0), r)
+            del r
+            screen.blit(font.render(str(count%9), True, (255,255,255)), (x+w/2, y+h/2))
+            pygame.display.update()
+            count += 1
+    
+    screen.blit(font.render('GOAL STATE', True, (0,0,0)), (pos[0], pos[1]-h))
+
+def draw_state(screen, state, pos, text): # state is 3x3 mat
+    global font
+    w = 60
+    h= 60
+    for i, column in zip(state, range(3)):
+        for count, row in zip(i, range(3)):
+            x = pos[0]+w*row
+            y = pos[1]+h*column
+            rectangle_ = pygame.Rect(x, y, w, h)
+            pygame.draw.rect(screen, ((count*15)%255, 0, 0), rectangle_)
+            del rectangle_
+            screen.blit(font.render(str(count%9), True, (255,255,255)), (x+w/2, y+h/2))
+            pygame.display.update()
+
+    i = screen.blit(font.render(text, True, (0,0,0)), (pos[0], pos[1]-h))
+    del i
+
+    
 
 class Solver:
-    def __init__(self, initialState, finalState):
+    def __init__(self, initialState, finalState, screen, events):
         self.initial = initialState
         self.goal = finalState
         self.traversedState_ = []
         self.stack = []
         self.costStack = []
         self.minCost = inf
+        self.screen = screen
+        self.events = events
+        self.totalSteps = 0
+        
         self.solve(self.initial, self.goal)
 
 
@@ -49,12 +115,20 @@ class Solver:
                 return i, x.index(v)
 
     def next_steps(self, mat, p=True, checkAlready =True):
+        global running
                 
         if mat in self.traversedState_ and checkAlready:
             return 'Already traversed'
         if p:
             print('Current Matrix:')
             self.print_matrix([mat])
+            draw_state(screen, mat, (50, 600/2 + 80), 'SOLVING')
+            for event in self.events:
+                if event.type == pygame.QUIT:
+                    running = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
         
         self.traversedState_.append(copy.deepcopy(mat))
         if p:
@@ -127,23 +201,62 @@ class Solver:
 
         print(f'\nTraversed States:')
         self.traversedState_.append(self.goal)
+        draw_state(screen, self.goal, (50, 600/2 + 80), '')
+        
 
         for matIndex in range(0, len(self.traversedState_), 10):
             self.print_matrix(self.traversedState_[matIndex:matIndex+10])
             print("")
         
         print(f'\nSummary:\n\tSteps: {step}')
+        self.totalSteps = step
 
-initial = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8]
-]
 
-goal = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 0]
-]
 
-# S1 = Solver(initial, goal)
+
+
+
+
+# pygame.draw.rect(screen, (255,0,0), pygame.Rect(30, 30, 60, 60))
+
+drawActual(screen, (50, 100))
+
+draw_state(screen, initial, (600/2 + 50, 100), 'INITIAL STATE')
+
+pygame.draw.line(screen, (0, 0, 0), (600/2, 0), (600/2, 600), width=1)
+pygame.draw.line(screen, (0, 0, 0), (0, 600/2), (600, 600/2), width=1)
+
+
+pygame.display.update()
+
+# screen.blit(font.render('SOLVING', True, (0,0,0)), (50, 600/2+30))
+
+
+runSolver = True
+traversedStateIndex = 0
+if __name__ == '__main__':
+    while running:
+        events = pygame.event.get()
+        for event in events:
+            if not runSolver:
+                draw_state(screen, S1.traversedState_[traversedStateIndex%len(S1.traversedState_)], (600/2 + 50, 600/2 + 90), 'Starts from initial state' )
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                if event.key in [pygame.K_UP, pygame.K_w]:
+                    traversedStateIndex += 1
+                if event.key in [pygame.K_DOWN, pygame.K_s]:
+                    traversedStateIndex -= 1
+        if runSolver:
+            S1 = Solver(initial, goal, screen, events)
+            screen.blit(font.render('Total Steps: ' + str(S1.totalSteps), True, (0,0,0)), (600/2 + 50, 600/2+10))
+            pygame.display.update()
+            draw_state(screen, S1.traversedState_[traversedStateIndex%len(S1.traversedState_)], (600/2 + 50, 600/2 + 90), 'Starts from initial state' )
+            screen.blit(font.render('Press arrow button to increase/decrease', True, (0,0,0)), (600/2 + 50, 600/2+50))
+            pygame.display.update()
+            runSolver = False
+            
+            
+        
