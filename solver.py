@@ -17,6 +17,9 @@ initial = [
 ]
 
 
+
+
+
 backgroundColor = (234, 212, 252)
 
 screen = pygame.display.set_mode((600, 600)) # w, h
